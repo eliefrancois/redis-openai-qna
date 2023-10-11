@@ -6,6 +6,9 @@ from langchain.llms.base import LLM
 from langchain.embeddings.base import Embeddings
 from typing import List
 
+from bs4 import BeautifulSoup
+import requests
+
 # Env Vars and constants
 CACHE_TYPE = os.getenv("CACHE_TYPE")
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
@@ -18,6 +21,7 @@ INDEX_NAME = "wiki"
 
 
 def get_llm() -> LLM:
+    """Create LLM Instance"""
     if OPENAI_API_TYPE=="azure":
         from langchain.llms import AzureOpenAI
         llm=AzureOpenAI(deployment_name=OPENAI_COMPLETIONS_ENGINE)
@@ -28,6 +32,7 @@ def get_llm() -> LLM:
 
 
 def get_embeddings() -> Embeddings:
+    """Create embeddings instance"""
     # TODO - work around rate limits for embedding providers
     if OPENAI_API_TYPE=="azure":
         #currently Azure OpenAI embeddings require request for service limit increase to be useful
@@ -77,6 +82,39 @@ def get_documents() -> List[Document]:
         ) for doc in datasource
     ]
     return documents
+
+# def get_documents() -> List[Document]:
+#     url = "https://example.com/data-page.html"
+#     response = requests.get(url)
+#     response.raise_for_status()  # Check for HTTP errors
+    
+#     soup = BeautifulSoup(response.content, 'html.parser')
+    
+#     # Assume each document is contained within an <article> tag,
+#     # with title, heading, and content in <h1>, <h2>, and <p> tags respectively.
+#     articles = soup.find_all('article')
+    
+#     documents = []
+#     for article in articles:
+#         title = article.find('h1').text if article.find('h1') else ""
+#         heading = article.find('h2').text if article.find('h2') else ""
+#         content = article.find('p').text if article.find('p') else ""
+        
+#         # Tokens can be obtained by splitting the content into words,
+#         # or use a more sophisticated tokenization method as needed.
+#         tokens = content.split()
+        
+#         doc = Document(
+#             page_content=content,
+#             metadata={
+#                 "title": title,
+#                 "heading": heading,
+#                 "tokens": tokens
+#             }
+#         )
+#         documents.append(doc)
+    
+#     return documents
 
 
 def create_vectorstore() -> Redis:
